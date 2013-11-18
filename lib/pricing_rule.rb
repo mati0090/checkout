@@ -1,5 +1,5 @@
 class PricingRule
-  attr_accessor :product_code, :amount, :fixed_price
+  attr_accessor :product_code, :amount, :fixed_price, :custom_condition
 
   def initialize(attrs)
     attrs.each do |key, value|
@@ -8,7 +8,11 @@ class PricingRule
   end
 
   def discounts_difference(items)
-    price_difference(items) * matches_times(items)
+    if (matches_items(items) || []).any? && custom_condition_match?(items)
+      price_difference(items)
+    else
+      0
+    end
   end
 
   private
@@ -39,6 +43,10 @@ class PricingRule
 
     def base_price(items)
       matches_items(items).first.price
+    end
+
+    def custom_condition_match?(items)
+      custom_condition.nil? || custom_condition.call(matches_times(items))
     end
 
 end
